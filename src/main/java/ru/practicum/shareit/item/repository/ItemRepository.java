@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ItemRepository {
-    Optional<Item> create(Item item);
+    Item create(Item item);
 
-    Optional<Item> update(Item item);
+    Item update(Item item);
 
     Optional<Item> getById(Long itemId);
 

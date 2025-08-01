@@ -21,16 +21,13 @@ import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
 
-/**
- * TODO Sprint add-controllers.
- */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/items")
 @Slf4j
 public class ItemController {
-    public static final String OWNER_ID = "X-Sharer-User-Id";
-    public final ItemService itemService;
+    private static final String OWNER_ID = "X-Sharer-User-Id";
+    private final ItemService itemService;
 
     @PostMapping
     public ItemResponseDto create(@RequestBody @Valid ItemCreateDto itemDto,

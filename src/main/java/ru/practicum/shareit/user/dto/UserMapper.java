@@ -1,11 +1,9 @@
 package ru.practicum.shareit.user.dto;
 
-import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.user.User;
 
 @Component
-@NoArgsConstructor
 public class UserMapper {
     public User createDtoToUser(UserCreateDto userDto) {
         return User.builder()
@@ -23,13 +21,4 @@ public class UserMapper {
                 .build();
     }
 
-    public User updateDtoToUser(UserUpdateDto userDto, User user) {
-        if (userDto.getName() != null) {
-            user.setName(userDto.getName());
-        }
-        if (userDto.getEmail() != null) {
-            user.setEmail(userDto.getEmail());
-        }
-        return user;
-    }
 }

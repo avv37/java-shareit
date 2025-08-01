@@ -9,7 +9,6 @@ import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.dto.UserResponseDto;
 import ru.practicum.shareit.user.dto.UserUpdateDto;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
-import ru.practicum.shareit.user.exception.UserSaveException;
 import ru.practicum.shareit.user.exception.UserValidateException;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -27,8 +26,7 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto create(UserCreateDto userDto) {
         log.info("Создание пользователя {}, {}", userDto.getName(), userDto.getEmail());
         checkEmailOrThrow(userDto.getEmail());
-        User user = userRepository.create(userMapper.createDtoToUser(userDto))
-                .orElseThrow(() -> new UserSaveException("Пользователь не создан"));
+        User user = userRepository.create(userMapper.createDtoToUser(userDto));
         log.info("Создание пользователя OK, id = {}", user.getId());
         return userMapper.toUserResponseDto(user);
     }
@@ -39,8 +37,13 @@ public class UserServiceImpl implements UserService {
         checkEmailOrThrow(userDto.getEmail());
         User oldUser = userRepository.getById(id)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + id + " не найден"));
-        User user = userRepository.update(userMapper.updateDtoToUser(userDto, oldUser))
-                .orElseThrow(() -> new UserSaveException("Пользователь не изменен"));
+        if (userDto.getName() != null) {
+            oldUser.setName(userDto.getName());
+        }
+        if (userDto.getEmail() != null) {
+            oldUser.setEmail(userDto.getEmail());
+        }
+        User user = userRepository.update(oldUser);
         log.info("Изменение пользователя OK");
         return userMapper.toUserResponseDto(user);
     }

@@ -1,6 +1,6 @@
 package ru.practicum.shareit.item.repository;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.HashMap;
@@ -9,21 +9,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Repository
+@Component
 public class ItemRepositoryInMemory implements ItemRepository {
     private final Map<Long, Item> items = new HashMap<>();
 
     @Override
-    public Optional<Item> create(Item item) {
+    public Item create(Item item) {
         item.setId(getNextId());
         items.put(item.getId(), item);
-        return Optional.of(item);
+        return item;
     }
 
     @Override
-    public Optional<Item> update(Item item) {
+    public Item update(Item item) {
         items.put(item.getId(), item);
-        return Optional.of(item);
+        return item;
     }
 
     @Override

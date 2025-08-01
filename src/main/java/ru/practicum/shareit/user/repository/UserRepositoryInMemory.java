@@ -1,6 +1,6 @@
 package ru.practicum.shareit.user.repository;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import ru.practicum.shareit.user.User;
 
 import java.util.HashMap;
@@ -8,21 +8,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Repository
+@Component
 public class UserRepositoryInMemory implements UserRepository {
     private final Map<Long, User> users = new HashMap<>();
 
     @Override
-    public Optional<User> create(User user) {
+    public User create(User user) {
         user.setId(getNextId());
         users.put(user.getId(), user);
-        return Optional.of(user);
+        return user;
     }
 
     @Override
-    public Optional<User> update(User user) {
+    public User update(User user) {
         users.put(user.getId(), user);
-        return Optional.of(user);
+        return user;
     }
 
     @Override

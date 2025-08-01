@@ -8,7 +8,6 @@ import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
-import ru.practicum.shareit.item.exception.ItemSaveException;
 import ru.practicum.shareit.item.exception.ItemValidateException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -34,8 +33,7 @@ public class ItemServiceImpl implements ItemService {
         Long ownerId = itemDto.getOwnerId();
         User owner = userRepository.getById(ownerId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + ownerId + " не найден"));
-        Item item = itemRepository.create(itemMapper.createDtoToItem(itemDto, owner))
-                .orElseThrow(() -> new ItemSaveException("Item не создан"));
+        Item item = itemRepository.create(itemMapper.createDtoToItem(itemDto, owner));
         ItemResponseDto itemResponseDto = itemMapper.toItemResponseDto(item);
         log.info("create ItemResponseDto " + itemResponseDto);
         return itemResponseDto;
@@ -54,8 +52,16 @@ public class ItemServiceImpl implements ItemService {
             throw new ItemValidateException("Item с id = " + itemId + " принадлежит пользователю "
                     + oldItem.getOwner().getId() + ", а не " + ownerId);
         }
-        Item item = itemRepository.update(itemMapper.updateDtoToItem(itemDto, oldItem))
-                .orElseThrow(() -> new ItemSaveException("Item не изменен"));
+        if (itemDto.getName() != null) {
+            oldItem.setName(itemDto.getName());
+        }
+        if (itemDto.getDescription() != null) {
+            oldItem.setDescription(itemDto.getDescription());
+        }
+        if (itemDto.getAvailable() != null) {
+            oldItem.setAvailable(itemDto.getAvailable());
+        }
+        Item item = itemRepository.update(oldItem);
         ItemResponseDto itemResponseDto = itemMapper.toItemResponseDto(item);
         log.info("update ItemResponseDto " + itemResponseDto);
         return itemResponseDto;
