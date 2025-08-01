@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.3.2</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/> <!-- lookup parent from repository   3.3.2   3.4.5  -->
 	</parent>
 
 	<groupId>ru.practicum</groupId>
@@ -97,7 +97,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-checkstyle-plugin</artifactId>
-					<version>3.1.2</version>
+					<version>3.6.0</version>  <!--3.1.2  -->
 					<configuration>
 						<configLocation>checkstyle.xml</configLocation>
 						<failOnViolation>true</failOnViolation>
@@ -116,7 +116,7 @@
 						<dependency>
 							<groupId>com.puppycrawl.tools</groupId>
 							<artifactId>checkstyle</artifactId>
-							<version>10.3</version>
+							<version>10.3</version> <!-- 10.3  10.26.1 -->
 						</dependency>
 					</dependencies>
 				</plugin>
@@ -139,7 +139,7 @@
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>0.8.12</version>
+					<version>0.8.13</version>
 					<configuration>
 						<output>file</output>
 					</configuration>
