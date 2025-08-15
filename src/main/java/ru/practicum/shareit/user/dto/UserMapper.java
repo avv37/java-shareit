@@ -6,11 +6,11 @@ import ru.practicum.shareit.user.User;
 @Component
 public class UserMapper {
     public User createDtoToUser(UserCreateDto userDto) {
-        return User.builder()
-                .id(userDto.getId())
-                .name(userDto.getName())
-                .email(userDto.getEmail())
-                .build();
+        User user = new User();
+        user.setId(userDto.getId());
+        user.setName(userDto.getName());
+        user.setEmail(userDto.getEmail());
+        return user;
     }
 
     public UserResponseDto toUserResponseDto(User user) {

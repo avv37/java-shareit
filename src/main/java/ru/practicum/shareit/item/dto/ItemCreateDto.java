@@ -6,18 +6,19 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.practicum.shareit.request.ItemRequest;
 
 @Data
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class ItemCreateDto {
-    @NotBlank
+    @NotBlank(message = "не заполнено поле name")
     private String name;
-    @NotBlank
+    @NotBlank(message = "не заполнено поле description")
     private String description;
-    @NotNull
+    @NotNull(message = "не заполнено поле available")
     private Boolean available;
     private Long ownerId;
-    private String request;
+    private ItemRequest request;
 }
