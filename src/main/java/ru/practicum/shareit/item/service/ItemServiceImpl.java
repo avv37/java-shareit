@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
@@ -13,6 +14,7 @@ import ru.practicum.shareit.item.dto.CommentResponseDto;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
+import ru.practicum.shareit.item.dto.ItemResponseShortDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.exception.CommentValidateException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
@@ -37,7 +39,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
-    private final ItemMapper itemMapper;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
@@ -49,7 +50,7 @@ public class ItemServiceImpl implements ItemService {
         Long ownerId = itemDto.getOwnerId();
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + ownerId + " не найден"));
-        Item item = itemRepository.save(itemMapper.createDtoToItem(itemDto, owner));
+        Item item = itemRepository.save(ItemMapper.createDtoToItem(itemDto, owner));
         ItemResponseDto itemResponseDto = ItemMapper.toItemResponseDto(item, null, null, null);
         log.info("create complete, ItemResponseDto " + itemResponseDto);
         return itemResponseDto;
@@ -93,13 +94,17 @@ public class ItemServiceImpl implements ItemService {
         List<CommentResponseDto> comments = commentsByItemId(itemId);
         boolean isOwner = (item.getOwner().getId().equals(userId));
         LocalDateTime now = LocalDateTime.now();
+        Sort orderByStartDesc = Sort.by(Sort.Direction.DESC, "start");
+        Sort orderByStartAsc = Sort.by(Sort.Direction.ASC, "start");
         ItemResponseDto itemResponseDto = ItemMapper.toItemResponseDto(item,
                 BookingMapper.toBookingResponseDto(
-                        isOwner ? bookingRepository.findFirstByItemIdAndStartBeforeOrderByStartDesc(item.getId(), now)
+                        isOwner ? bookingRepository.findFirstByItemIdAndStartBefore(item.getId(),
+                                        now, orderByStartDesc)
                                 .orElse(new Booking()) : new Booking(),
                         null, null),
                 BookingMapper.toBookingResponseDto(
-                        isOwner ? bookingRepository.findFirstByItemIdAndStartAfterOrderByStartAsc(item.getId(), now)
+                        isOwner ? bookingRepository.findFirstByItemIdAndStartAfter(item.getId(),
+                                        now, orderByStartAsc)
                                 .orElse(new Booking()) : new Booking(),
                         null, null),
                 comments);
@@ -115,14 +120,15 @@ public class ItemServiceImpl implements ItemService {
         }
         List<Item> itemList = itemRepository.findByOwnerId(ownerId);
         LocalDateTime now = LocalDateTime.now();
-
+        Sort orderByStartDesc = Sort.by(Sort.Direction.DESC, "start");
+        Sort orderByStartAsc = Sort.by(Sort.Direction.ASC, "start");
         return itemList.stream()
                 .map(item -> ItemMapper.toItemResponseDto(item,
                         BookingMapper.toBookingResponseDto(bookingRepository
-                                .findFirstByItemIdAndStartBeforeOrderByStartDesc(item.getId(), now)
+                                .findFirstByItemIdAndStartBefore(item.getId(), now, orderByStartDesc)
                                 .orElse(new Booking()), null, null),
                         BookingMapper.toBookingResponseDto(bookingRepository
-                                .findFirstByItemIdAndStartAfterOrderByStartAsc(item.getId(), now)
+                                .findFirstByItemIdAndStartAfter(item.getId(), now, orderByStartAsc)
                                 .orElse(new Booking()), null, null),
                         commentsByItemId(item.getId())
                 ))
@@ -130,7 +136,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemResponseDto> searchItemsByText(String text, Long ownerId) {
+    public List<ItemResponseShortDto> searchItemsByText(String text, Long ownerId) {
         log.info("searchItemsByText ownerId = " + ownerId + ", text = " + text);
         if (text.isEmpty()) {
             return new ArrayList<>();
@@ -138,7 +144,7 @@ public class ItemServiceImpl implements ItemService {
         List<Item> itemList = itemRepository
                 .findByAvailableIsTrueAndNameContainingOrDescriptionContainingAllIgnoreCase(text, text);
         return itemList.stream()
-                .map(item -> ItemMapper.toItemResponseDto(item, null, null, null))
+                .map(ItemMapper::toItemResponseShortDto)
                 .collect(Collectors.toList());
     }
 
@@ -153,9 +159,10 @@ public class ItemServiceImpl implements ItemService {
         Long itemId = commentDto.getItemId();
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemNotFoundException("Item с id = " + itemId + " не найден"));
+        Sort orderByEndtDesc = Sort.by(Sort.Direction.DESC, "end");
 
-        bookingRepository.findFirstByItemIdAndBookerIdAndEndBeforeOrderByEndDesc(itemId, authorId,
-                        LocalDateTime.now())
+        bookingRepository.findFirstByItemIdAndBookerIdAndEndBefore(itemId, authorId,
+                        LocalDateTime.now(), orderByEndtDesc)
                 .orElseThrow(() -> new CommentValidateException("Пользователь с id = " + authorId +
                         " не брал вещь в аренду"));
 

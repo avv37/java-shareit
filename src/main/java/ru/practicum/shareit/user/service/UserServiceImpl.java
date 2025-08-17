@@ -23,16 +23,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
 
     @Override
     @Transactional
     public UserResponseDto create(UserCreateDto userDto) {
         log.info("Создание пользователя {}, {}", userDto.getName(), userDto.getEmail());
         checkEmailOrThrow(userDto.getEmail());
-        User user = userRepository.save(userMapper.createDtoToUser(userDto));
+        User user = userRepository.save(UserMapper.createDtoToUser(userDto));
         log.info("Создание пользователя OK, id = {}", user.getId());
-        return userMapper.toUserResponseDto(user);
+        return UserMapper.toUserResponseDto(user);
     }
 
     @Override
@@ -50,14 +49,14 @@ public class UserServiceImpl implements UserService {
         }
         User user = userRepository.save(oldUser);
         log.info("Изменение пользователя OK");
-        return userMapper.toUserResponseDto(user);
+        return UserMapper.toUserResponseDto(user);
     }
 
     @Override
     public List<UserResponseDto> getAllUsers() {
         log.info("Получение всех пользователей");
         return userRepository.findAll().stream()
-                .map(userMapper::toUserResponseDto)
+                .map(UserMapper::toUserResponseDto)
                 .collect(Collectors.toList());
     }
 
@@ -66,7 +65,7 @@ public class UserServiceImpl implements UserService {
         log.info("Получение пользователя по id = {}", id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + id + " не найден"));
-        return userMapper.toUserResponseDto(user);
+        return UserMapper.toUserResponseDto(user);
     }
 
     @Override

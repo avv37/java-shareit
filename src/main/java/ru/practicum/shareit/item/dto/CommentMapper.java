@@ -1,13 +1,15 @@
 package ru.practicum.shareit.item.dto;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 
 import java.time.LocalDateTime;
 
+@UtilityClass
 public class CommentMapper {
-    public static Comment createDtoToComment(CommentCreateDto createDto, User author, Item item, LocalDateTime now) {
+    public Comment createDtoToComment(CommentCreateDto createDto, User author, Item item, LocalDateTime now) {
         return Comment.builder()
                 .text(createDto.getText())
                 .author(author)
@@ -16,7 +18,7 @@ public class CommentMapper {
                 .build();
     }
 
-    public static CommentResponseDto toCommentResponseDto(Comment comment) {
+    public CommentResponseDto toCommentResponseDto(Comment comment) {
         return CommentResponseDto.builder()
                 .id(comment.getId())
                 .text(comment.getText())

@@ -2,16 +2,18 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
+import ru.practicum.shareit.booking.State;
 import ru.practicum.shareit.booking.Status;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
-import ru.practicum.shareit.booking.exeption.BookingNotFoundException;
-import ru.practicum.shareit.booking.exeption.BookingValidateException;
+import ru.practicum.shareit.booking.exception.BookingNotFoundException;
+import ru.practicum.shareit.booking.exception.BookingValidateException;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
@@ -33,7 +35,6 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
 
     @Override
     @Transactional
@@ -54,7 +55,7 @@ public class BookingServiceImpl implements BookingService {
 
         BookingResponseDto bookingResponseDto = BookingMapper.toBookingResponseDto(booking,
                 ItemMapper.toItemResponseDto(item, null, null, null),
-                userMapper.toUserResponseDto(booker));
+                UserMapper.toUserResponseDto(booker));
         log.info("create BookingResponseDto " + bookingResponseDto);
         return bookingResponseDto;
     }
@@ -83,7 +84,7 @@ public class BookingServiceImpl implements BookingService {
 
         BookingResponseDto bookingResponseDto = BookingMapper.toBookingResponseDto(booking,
                 ItemMapper.toItemResponseDto(item, null, null, null),
-                userMapper.toUserResponseDto(booking.getBooker()));
+                UserMapper.toUserResponseDto(booking.getBooker()));
 
         log.info("create BookingResponseDto " + bookingResponseDto);
         return bookingResponseDto;
@@ -103,7 +104,7 @@ public class BookingServiceImpl implements BookingService {
 
         BookingResponseDto bookingResponseDto = BookingMapper.toBookingResponseDto(booking,
                 ItemMapper.toItemResponseDto(booking.getItem(), null, null, null),
-                userMapper.toUserResponseDto(booking.getBooker()));
+                UserMapper.toUserResponseDto(booking.getBooker()));
 
         log.info("create BookingResponseDto " + bookingResponseDto);
         return bookingResponseDto;
@@ -114,23 +115,25 @@ public class BookingServiceImpl implements BookingService {
         log.info("getBookingsByBookerAndState state = " + state + ", userId = " + userId);
         userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + userId + " не найден"));
-
-        List<Booking> bookingList = switch (state.toUpperCase()) {
-            case "ALL" -> bookingRepository.findByBookerIdOrderByStartDesc(userId);
-            case "CURRENT" -> bookingRepository.findByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId,
-                    LocalDateTime.now(), LocalDateTime.now());
-            case "PAST" -> bookingRepository.findByBookerIdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now());
-            case "FUTURE" -> bookingRepository.findByBookerIdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now());
-            case "WAITING", "REJECTED" -> bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId,
-                    Status.valueOf(state.toUpperCase()));
+        Sort orderByStartDesc = Sort.by(Sort.Direction.DESC, "start");
+        List<Booking> bookingList = switch (State.valueOf(state.toUpperCase())) {
+            case ALL -> bookingRepository.findByBookerId(userId, orderByStartDesc);
+            case CURRENT -> bookingRepository.findByBookerIdAndStartBeforeAndEndAfter(userId,
+                    LocalDateTime.now(), LocalDateTime.now(), orderByStartDesc);
+            case PAST -> bookingRepository.findByBookerIdAndEndBefore(userId, LocalDateTime.now(),
+                    orderByStartDesc);
+            case FUTURE -> bookingRepository.findByBookerIdAndStartAfter(userId, LocalDateTime.now(),
+                    orderByStartDesc);
+            case WAITING, REJECTED -> bookingRepository.findByBookerIdAndStatus(userId,
+                    Status.valueOf(state.toUpperCase()), orderByStartDesc);
             default -> throw new BookingValidateException("Статус " + state + " не предусмотрен");
         };
 
         return bookingList.stream()
                 .map(booking -> BookingMapper.toBookingResponseDto(
-                        booking,
-                        ItemMapper.toItemResponseDto(booking.getItem(), null, null, null),
-                        userMapper.toUserResponseDto(booking.getBooker())
+                                booking,
+                                ItemMapper.toItemResponseDto(booking.getItem(), null, null, null),
+                                UserMapper.toUserResponseDto(booking.getBooker())
                         )
                 )
                 .collect(Collectors.toList());
@@ -144,15 +147,18 @@ public class BookingServiceImpl implements BookingService {
         if (itemRepository.findFirstByOwnerId(userId) == null) {
             throw new BookingValidateException("Пользователь " + userId + " не владеет ни одной вещью");
         }
-
-        List<Booking> bookingList = switch (state.toUpperCase()) {
-            case "ALL" -> bookingRepository.findByItemOwnerIdOrderByStartDesc(userId);
-            case "CURRENT" -> bookingRepository.findByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId,
-                    LocalDateTime.now(), LocalDateTime.now());
-            case "PAST" -> bookingRepository.findByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now());
-            case "FUTURE" -> bookingRepository.findByItemOwnerIdAndStartAfterOrderByStartDesc(userId, LocalDateTime.now());
-            case "WAITING", "REJECTED" -> bookingRepository.findByItemOwnerIdAndStatusOrderByStartDesc(userId,
-                    Status.valueOf(state.toUpperCase()));
+        Sort orderByStartDesc = Sort.by(Sort.Direction.DESC, "start");
+        List<Booking> bookingList = switch (State.valueOf(state.toUpperCase())) {
+            case ALL -> bookingRepository.findByItemOwnerId(userId, orderByStartDesc);
+            case CURRENT -> bookingRepository.findByItemOwnerIdAndStartBeforeAndEndAfter(userId,
+                    LocalDateTime.now(), LocalDateTime.now(), orderByStartDesc);
+            case PAST -> bookingRepository.findByItemOwnerIdAndEndBefore(userId, LocalDateTime.now(),
+                    orderByStartDesc);
+            case FUTURE ->
+                    bookingRepository.findByItemOwnerIdAndStartAfter(userId, LocalDateTime.now(),
+                            orderByStartDesc);
+            case WAITING, REJECTED -> bookingRepository.findByItemOwnerIdAndStatus(userId,
+                    Status.valueOf(state.toUpperCase()), orderByStartDesc);
             default -> throw new BookingValidateException("Статус " + state + " не предусмотрен");
         };
 
@@ -160,7 +166,7 @@ public class BookingServiceImpl implements BookingService {
                 .map(booking -> BookingMapper.toBookingResponseDto(
                                 booking,
                                 ItemMapper.toItemResponseDto(booking.getItem(), null, null, null),
-                                userMapper.toUserResponseDto(booking.getBooker())
+                                UserMapper.toUserResponseDto(booking.getBooker())
                         )
                 )
                 .collect(Collectors.toList());

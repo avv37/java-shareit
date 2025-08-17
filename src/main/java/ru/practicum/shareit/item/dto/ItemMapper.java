@@ -1,14 +1,14 @@
 package ru.practicum.shareit.item.dto;
 
-import org.springframework.stereotype.Component;
+import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 
 import java.util.List;
 
-@Component
-public final class ItemMapper {
+@UtilityClass
+public class ItemMapper {
 
     public Item createDtoToItem(ItemCreateDto itemDto, User owner) {
         return Item.builder()
@@ -20,7 +20,7 @@ public final class ItemMapper {
                 .build();
     }
 
-    public static ItemResponseDto toItemResponseDto(Item item,
+    public ItemResponseDto toItemResponseDto(Item item,
                                                     BookingResponseDto lastBook,
                                                     BookingResponseDto nextBook,
                                                     List<CommentResponseDto> comments) {
@@ -32,6 +32,15 @@ public final class ItemMapper {
                 .lastBooking(lastBook)
                 .nextBooking(nextBook)
                 .comments(comments)
+                .build();
+    }
+
+    public ItemResponseShortDto toItemResponseShortDto(Item item) {
+        return ItemResponseShortDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .available(item.getAvailable())
                 .build();
     }
 
