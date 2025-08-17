@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -15,6 +16,7 @@ import lombok.ToString;
 @Setter
 @Entity
 @ToString
+@EqualsAndHashCode(of = {"id"})
 @Table(name = "users")
 public class User {
     @Id
@@ -25,16 +27,4 @@ public class User {
     private String name;
 
     private String email;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof User)) return false;
-        return id != null && id.equals(((User) o).getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }

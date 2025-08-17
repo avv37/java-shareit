@@ -18,6 +18,7 @@ import ru.practicum.shareit.item.dto.CommentCreateDto;
 import ru.practicum.shareit.item.dto.CommentResponseDto;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
+import ru.practicum.shareit.item.dto.ItemResponseShortDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.service.ItemService;
 
@@ -69,8 +70,8 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemResponseDto> searchItemsByText(@RequestParam(required = false, defaultValue = "") String text,
-                                                   @RequestHeader(OWNER_ID) @Min(1) Long ownerId) {
+    public List<ItemResponseShortDto> searchItemsByText(@RequestParam(required = false, defaultValue = "") String text,
+                                                        @RequestHeader(OWNER_ID) @Min(1) Long ownerId) {
         log.info("searchItemsByText: text = {}, ownerId = {}", text, ownerId);
         return itemService.searchItemsByText(text, ownerId);
     }

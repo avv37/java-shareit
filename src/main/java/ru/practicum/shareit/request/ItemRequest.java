@@ -8,6 +8,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -20,6 +23,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode(of = {"id"})
 @Table(name = "requests")
 public class ItemRequest {
     @Id
@@ -35,15 +39,4 @@ public class ItemRequest {
 
     private LocalDateTime created;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ItemRequest)) return false;
-        return id != null && id.equals(((ItemRequest) o).getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }
