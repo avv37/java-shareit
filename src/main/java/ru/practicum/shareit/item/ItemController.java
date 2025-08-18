@@ -39,7 +39,7 @@ public class ItemController {
         ItemResponseDto itemResponseDto = itemService.create(itemDto.toBuilder()
                 .ownerId(ownerId)
                 .build());
-        log.info("create complete, itemResponseDto = " + itemResponseDto);
+        log.info("create complete, itemResponseDto = {}", itemResponseDto);
         return itemResponseDto;
     }
 
@@ -59,21 +59,25 @@ public class ItemController {
                                        @Positive @RequestHeader(OWNER_ID) @Min(1) Long ownerId) {
         log.info("controller getItemById: itemId = {}, ownerId = {}", itemId, ownerId);
         ItemResponseDto itemResponseDto = itemService.getItemById(itemId, ownerId);
-        log.info("controller getItemById itemResponseDto = " + itemResponseDto);
+        log.info("controller getItemById itemResponseDto = {}", itemResponseDto);
         return itemResponseDto;
     }
 
     @GetMapping
     public List<ItemResponseDto> getItemsByOwner(@RequestHeader(OWNER_ID) @Min(1) Long ownerId) {
         log.info("getItemsByOwner: ownerId = {}", ownerId);
-        return itemService.getItemsByOwner(ownerId);
+        List<ItemResponseDto> itemResponseDtoList = itemService.getItemsByOwner(ownerId);
+        log.info("getItemsByOwner complete: itemResponseDtoList = {}", itemResponseDtoList);
+        return itemResponseDtoList;
     }
 
     @GetMapping("/search")
     public List<ItemResponseShortDto> searchItemsByText(@RequestParam(required = false, defaultValue = "") String text,
                                                         @RequestHeader(OWNER_ID) @Min(1) Long ownerId) {
         log.info("searchItemsByText: text = {}, ownerId = {}", text, ownerId);
-        return itemService.searchItemsByText(text, ownerId);
+        List<ItemResponseShortDto> itemResponseShortDtoList = itemService.searchItemsByText(text, ownerId);
+        log.info("searchItemsByText complete: itemResponseShortDtoList = {}", itemResponseShortDtoList);
+        return itemResponseShortDtoList;
     }
 
     @PostMapping("/{itemId}/comment")
@@ -81,9 +85,11 @@ public class ItemController {
                                          @RequestBody CommentCreateDto commentDto,
                                          @RequestHeader(OWNER_ID) @Min(1) Long userId) {
         log.info("addComment comment: {}, ownerId = {}, itemId = {}", commentDto, userId, itemId);
-        return itemService.addComment(commentDto.toBuilder()
+        CommentResponseDto commentResponseDto = itemService.addComment(commentDto.toBuilder()
                 .itemId(itemId)
                 .authorId(userId)
                 .build());
+        log.info("addComment complete, commentResponseDto = {}", commentResponseDto);
+        return commentResponseDto;
     }
 }

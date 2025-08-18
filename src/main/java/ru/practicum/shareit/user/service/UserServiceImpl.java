@@ -64,13 +64,8 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto getById(Long id) {
         log.info("Получение пользователя по id = {}", id);
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + id + " не найден"));
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с id = {} " + id + " не найден"));
         return UserMapper.toUserResponseDto(user);
-    }
-
-    @Override
-    public boolean existsById(Long id) {
-        return userRepository.existsById(id);
     }
 
     @Override
@@ -78,9 +73,7 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         log.info("Удаление пользователя по id = {}", id);
         Optional<User> userOpt = userRepository.findById(id);
-        if (userOpt.isPresent()) {
-            userRepository.delete(userOpt.get());
-        }
+        userOpt.ifPresent(userRepository::delete);
     }
 
     private void checkEmailOrThrow(String email) {

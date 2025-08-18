@@ -46,20 +46,20 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public ItemResponseDto create(ItemCreateDto itemDto) {
-        log.info("create ItemCreateDto " + itemDto);
+        log.info("create ItemCreateDto = {}", itemDto);
         Long ownerId = itemDto.getOwnerId();
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + ownerId + " не найден"));
         Item item = itemRepository.save(ItemMapper.createDtoToItem(itemDto, owner));
         ItemResponseDto itemResponseDto = ItemMapper.toItemResponseDto(item, null, null, null);
-        log.info("create complete, ItemResponseDto " + itemResponseDto);
+        log.info("create complete, ItemResponseDto = {}", itemResponseDto);
         return itemResponseDto;
     }
 
     @Transactional
     @Override
     public ItemResponseDto update(ItemUpdateDto itemDto) {
-        log.info("update ItemUpdateDto " + itemDto);
+        log.info("update ItemUpdateDto {}", itemDto);
         Long ownerId = itemDto.getOwnerId();
         if (!userRepository.existsById(ownerId)) {
             throw new UserNotFoundException("Пользователь с id = " + ownerId + " не найден");
@@ -82,13 +82,13 @@ public class ItemServiceImpl implements ItemService {
         }
         Item item = itemRepository.save(oldItem);
         ItemResponseDto itemResponseDto = ItemMapper.toItemResponseDto(item, null, null, null);
-        log.info("update ItemResponseDto " + itemResponseDto);
+        log.info("update ItemResponseDto {}", itemResponseDto);
         return itemResponseDto;
     }
 
     @Override
     public ItemResponseDto getItemById(Long itemId, Long userId) {
-        log.info("service getItemById itemId = " + itemId);
+        log.info("service getItemById itemId {}", itemId);
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemNotFoundException("Item с id = " + itemId + " не найден"));
         List<CommentResponseDto> comments = commentsByItemId(itemId);
@@ -108,13 +108,13 @@ public class ItemServiceImpl implements ItemService {
                                 .orElse(new Booking()) : new Booking(),
                         null, null),
                 comments);
-        log.info("service getItemById itemResponseDto = " + itemResponseDto);
+        log.info("service getItemById itemResponseDto = {}", itemResponseDto);
         return itemResponseDto;
     }
 
     @Override
     public List<ItemResponseDto> getItemsByOwner(Long ownerId) {
-        log.info("getItemsByOwner ownerId = " + ownerId);
+        log.info("getItemsByOwner ownerId = {}", ownerId);
         if (!userRepository.existsById(ownerId)) {
             throw new UserNotFoundException("Пользователь с id = " + ownerId + " не найден");
         }
@@ -137,7 +137,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemResponseShortDto> searchItemsByText(String text, Long ownerId) {
-        log.info("searchItemsByText ownerId = " + ownerId + ", text = " + text);
+        log.info("searchItemsByText ownerId = {}, text = {}", ownerId, text);
         if (text.isEmpty()) {
             return new ArrayList<>();
         }
@@ -151,7 +151,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public CommentResponseDto addComment(CommentCreateDto commentDto) {
-        log.info("addComment CommentCreateDto " + commentDto);
+        log.info("addComment CommentCreateDto {}", commentDto);
         Long authorId = commentDto.getAuthorId();
         User author = userRepository.findById(authorId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + authorId + " не найден"));
@@ -169,7 +169,7 @@ public class ItemServiceImpl implements ItemService {
         Comment comment = CommentMapper.createDtoToComment(commentDto, author, item, LocalDateTime.now());
         comment = commentRepository.save(comment);
         CommentResponseDto commentResponseDto = CommentMapper.toCommentResponseDto(comment);
-        log.info("create commentResponseDto " + commentResponseDto);
+        log.info("create commentResponseDto {}", commentResponseDto);
         return commentResponseDto;
     }
 

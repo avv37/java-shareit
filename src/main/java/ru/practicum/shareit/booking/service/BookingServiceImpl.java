@@ -39,7 +39,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingResponseDto create(BookingCreateDto bookingDto, Long userId) {
-        log.info("create BookingCreateDto " + bookingDto + ", userId = " + userId);
+        log.info("create BookingCreateDto = {}, userId = {}", bookingDto, userId);
         User booker = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + userId + " не найден"));
         Long itemId = bookingDto.getItemId();
@@ -56,14 +56,14 @@ public class BookingServiceImpl implements BookingService {
         BookingResponseDto bookingResponseDto = BookingMapper.toBookingResponseDto(booking,
                 ItemMapper.toItemResponseDto(item, null, null, null),
                 UserMapper.toUserResponseDto(booker));
-        log.info("create BookingResponseDto " + bookingResponseDto);
+        log.info("create BookingResponseDto = {}", bookingResponseDto);
         return bookingResponseDto;
     }
 
     @Override
     @Transactional
     public BookingResponseDto approve(Long bookingId, Boolean approved, Long userId) {
-        log.info("approve bookingId " + bookingId + ", approved = " + approved + ", userId = " + userId);
+        log.info("approve bookingId = {}, approved = {}, userId = {}", bookingId, approved, userId);
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException("Бронирование с id = " + bookingId + " не найдено"));
         userRepository.findById(userId)
@@ -86,13 +86,13 @@ public class BookingServiceImpl implements BookingService {
                 ItemMapper.toItemResponseDto(item, null, null, null),
                 UserMapper.toUserResponseDto(booking.getBooker()));
 
-        log.info("create BookingResponseDto " + bookingResponseDto);
+        log.info("create BookingResponseDto = {}", bookingResponseDto);
         return bookingResponseDto;
     }
 
     @Override
     public BookingResponseDto getBookingById(Long bookingId, Long userId) {
-        log.info("getBookingById bookingId " + bookingId + ", userId = " + userId);
+        log.info("getBookingById bookingId = {}, userId = {}", bookingId, userId);
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException("Бронирование с id = " + bookingId + " не найдено"));
         userRepository.findById(userId)
@@ -106,17 +106,23 @@ public class BookingServiceImpl implements BookingService {
                 ItemMapper.toItemResponseDto(booking.getItem(), null, null, null),
                 UserMapper.toUserResponseDto(booking.getBooker()));
 
-        log.info("create BookingResponseDto " + bookingResponseDto);
+        log.info("create BookingResponseDto = {}", bookingResponseDto);
         return bookingResponseDto;
     }
 
     @Override
     public List<BookingResponseDto> getBookingsByBookerAndState(String state, Long userId) {
-        log.info("getBookingsByBookerAndState state = " + state + ", userId = " + userId);
+        log.info("getBookingsByBookerAndState state = {}, userId = {}", state, userId);
         userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + userId + " не найден"));
+        State stateSt;
+        try {
+            stateSt = State.valueOf(state.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BookingValidateException("Статус " + state + " не предусмотрен");
+        }
         Sort orderByStartDesc = Sort.by(Sort.Direction.DESC, "start");
-        List<Booking> bookingList = switch (State.valueOf(state.toUpperCase())) {
+        List<Booking> bookingList = switch (stateSt) { // (State.valueOf(state.toUpperCase()))
             case ALL -> bookingRepository.findByBookerId(userId, orderByStartDesc);
             case CURRENT -> bookingRepository.findByBookerIdAndStartBeforeAndEndAfter(userId,
                     LocalDateTime.now(), LocalDateTime.now(), orderByStartDesc);
@@ -126,7 +132,6 @@ public class BookingServiceImpl implements BookingService {
                     orderByStartDesc);
             case WAITING, REJECTED -> bookingRepository.findByBookerIdAndStatus(userId,
                     Status.valueOf(state.toUpperCase()), orderByStartDesc);
-            default -> throw new BookingValidateException("Статус " + state + " не предусмотрен");
         };
 
         return bookingList.stream()
@@ -141,25 +146,29 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingResponseDto> getBookingsByOwnerAndState(String state, Long userId) {
-        log.info("getBookingsByOwnerAndState state = " + state + ", userId = " + userId);
+        log.info("getBookingsByOwnerAndState state = {}, userId = {}", state, userId);
         userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + userId + " не найден"));
         if (itemRepository.findFirstByOwnerId(userId) == null) {
             throw new BookingValidateException("Пользователь " + userId + " не владеет ни одной вещью");
         }
+        State stateSt;
+        try {
+            stateSt = State.valueOf(state.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BookingValidateException("Статус " + state + " не предусмотрен");
+        }
         Sort orderByStartDesc = Sort.by(Sort.Direction.DESC, "start");
-        List<Booking> bookingList = switch (State.valueOf(state.toUpperCase())) {
+        List<Booking> bookingList = switch (stateSt) {
             case ALL -> bookingRepository.findByItemOwnerId(userId, orderByStartDesc);
             case CURRENT -> bookingRepository.findByItemOwnerIdAndStartBeforeAndEndAfter(userId,
                     LocalDateTime.now(), LocalDateTime.now(), orderByStartDesc);
             case PAST -> bookingRepository.findByItemOwnerIdAndEndBefore(userId, LocalDateTime.now(),
                     orderByStartDesc);
-            case FUTURE ->
-                    bookingRepository.findByItemOwnerIdAndStartAfter(userId, LocalDateTime.now(),
-                            orderByStartDesc);
+            case FUTURE -> bookingRepository.findByItemOwnerIdAndStartAfter(userId, LocalDateTime.now(),
+                    orderByStartDesc);
             case WAITING, REJECTED -> bookingRepository.findByItemOwnerIdAndStatus(userId,
                     Status.valueOf(state.toUpperCase()), orderByStartDesc);
-            default -> throw new BookingValidateException("Статус " + state + " не предусмотрен");
         };
 
         return bookingList.stream()
