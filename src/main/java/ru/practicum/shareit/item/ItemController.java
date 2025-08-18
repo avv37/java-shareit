@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.shareit.item.dto.CommentCreateDto;
+import ru.practicum.shareit.item.dto.CommentResponseDto;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
+import ru.practicum.shareit.item.dto.ItemResponseShortDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.service.ItemService;
 
@@ -33,9 +36,11 @@ public class ItemController {
     public ItemResponseDto create(@RequestBody @Valid ItemCreateDto itemDto,
                                   @RequestHeader(OWNER_ID) @Min(1) Long ownerId) {
         log.info("create item: {}, ownerId = {}", itemDto, ownerId);
-        return itemService.create(itemDto.toBuilder()
+        ItemResponseDto itemResponseDto = itemService.create(itemDto.toBuilder()
                 .ownerId(ownerId)
                 .build());
+        log.info("create complete, itemResponseDto = {}", itemResponseDto);
+        return itemResponseDto;
     }
 
     @PatchMapping("/{itemId}")
@@ -52,20 +57,39 @@ public class ItemController {
     @GetMapping("/{itemId}")
     public ItemResponseDto getItemById(@Positive @PathVariable Long itemId,
                                        @Positive @RequestHeader(OWNER_ID) @Min(1) Long ownerId) {
-        log.info("getItemById: itemId = {}, ownerId = {}", itemId, ownerId);
-        return itemService.getItemById(itemId, ownerId);
+        log.info("controller getItemById: itemId = {}, ownerId = {}", itemId, ownerId);
+        ItemResponseDto itemResponseDto = itemService.getItemById(itemId, ownerId);
+        log.info("controller getItemById itemResponseDto = {}", itemResponseDto);
+        return itemResponseDto;
     }
 
     @GetMapping
     public List<ItemResponseDto> getItemsByOwner(@RequestHeader(OWNER_ID) @Min(1) Long ownerId) {
         log.info("getItemsByOwner: ownerId = {}", ownerId);
-        return itemService.getItemsByOwner(ownerId);
+        List<ItemResponseDto> itemResponseDtoList = itemService.getItemsByOwner(ownerId);
+        log.info("getItemsByOwner complete: itemResponseDtoList = {}", itemResponseDtoList);
+        return itemResponseDtoList;
     }
 
     @GetMapping("/search")
-    public List<ItemResponseDto> searchItemsByText(@RequestParam(required = false, defaultValue = "") String text,
-                                                   @RequestHeader(OWNER_ID) @Min(1) Long ownerId) {
-        log.info("getItemById: text = {}, ownerId = {}", text, ownerId);
-        return itemService.searchItemsByText(text, ownerId);
+    public List<ItemResponseShortDto> searchItemsByText(@RequestParam(required = false, defaultValue = "") String text,
+                                                        @RequestHeader(OWNER_ID) @Min(1) Long ownerId) {
+        log.info("searchItemsByText: text = {}, ownerId = {}", text, ownerId);
+        List<ItemResponseShortDto> itemResponseShortDtoList = itemService.searchItemsByText(text, ownerId);
+        log.info("searchItemsByText complete: itemResponseShortDtoList = {}", itemResponseShortDtoList);
+        return itemResponseShortDtoList;
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentResponseDto addComment(@Positive @PathVariable Long itemId,
+                                         @RequestBody CommentCreateDto commentDto,
+                                         @RequestHeader(OWNER_ID) @Min(1) Long userId) {
+        log.info("addComment comment: {}, ownerId = {}, itemId = {}", commentDto, userId, itemId);
+        CommentResponseDto commentResponseDto = itemService.addComment(commentDto.toBuilder()
+                .itemId(itemId)
+                .authorId(userId)
+                .build());
+        log.info("addComment complete, commentResponseDto = {}", commentResponseDto);
+        return commentResponseDto;
     }
 }

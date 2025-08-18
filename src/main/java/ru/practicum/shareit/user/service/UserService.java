@@ -15,7 +15,5 @@ public interface UserService {
 
     UserResponseDto getById(Long id);
 
-    boolean existsById(Long id);
-
     void delete(Long id);
 }
