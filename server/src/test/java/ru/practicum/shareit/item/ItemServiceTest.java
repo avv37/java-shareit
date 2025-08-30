@@ -65,6 +65,19 @@ public class ItemServiceTest {
         // нет такого запроса
         assertThrows(ItemRequestNotFoundException.class, () -> itemService.create(itemCreateDto1));
 
+        ItemCreateDto itemCreateDtoNull = ItemCreateDto.builder()
+                .name("name1")
+                .description("descr1")
+                .available(true)
+                .ownerId(userResponseDto.getId())
+                .requestId(null)
+                .build();
+        ItemResponseDto itemResponseDto = itemService.create(itemCreateDtoNull);
+        assertThat(itemResponseDto.getId()).isNotNull();
+        assertThat(itemResponseDto.getName()).isEqualTo(itemCreateDto.getName());
+        assertThat(itemResponseDto.getDescription()).isEqualTo(itemCreateDto.getDescription());
+        assertThat(itemResponseDto.getAvailable()).isEqualTo(itemCreateDto.getAvailable());
+
         // создали запрос
         ItemRequestDto itemRequestDto = itemRequestService.create(itemRequestCreateDto1, userResponseDto.getId());
         // создали вещь
@@ -75,7 +88,7 @@ public class ItemServiceTest {
                 .ownerId(userResponseDto.getId())
                 .requestId(itemRequestDto.getId())
                 .build();
-        ItemResponseDto itemResponseDto = itemService.create(itemCreateDto2);
+        itemResponseDto = itemService.create(itemCreateDto2);
 
         assertThat(itemResponseDto.getId()).isNotNull();
         assertThat(itemResponseDto.getName()).isEqualTo(itemCreateDto.getName());
