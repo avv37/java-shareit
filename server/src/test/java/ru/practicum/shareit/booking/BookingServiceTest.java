@@ -73,6 +73,14 @@ public class BookingServiceTest {
     void shouldCreateBookingTest() {
         // 1-й владелец, 2-й брал в аренду
 
+        ItemCreateDto itemCreateDtoTime = new ItemCreateDto("name1", "descr1", true,
+                userResponseDto1.getId(), itemRequestDto1.getId());
+        ItemResponseDto itemResponseDtoTime = itemService.create(itemCreateDtoTime);
+        // бронирование с неправильным временем
+        BookingCreateDto bookingCreateDtoTime = new BookingCreateDto(itemResponseDtoTime.getId(),
+                LocalDateTime.now().minusMinutes(10L), LocalDateTime.now().minusMinutes(20L));
+        assertThrows(BookingValidateException.class, () -> bookingService.create(bookingCreateDtoTime, userResponseDto2.getId()));
+
         // создали вещь, владелец 1, недоступна для аренды
         ItemCreateDto itemCreateDtoFalse = new ItemCreateDto("name1", "descr1", false,
                 userResponseDto1.getId(), itemRequestDto1.getId());
@@ -151,6 +159,9 @@ public class BookingServiceTest {
 
     @Test
     void shouldGetBookingsByBookerAndStateTest() {
+        // Статус  не предусмотрен
+        assertThrows(BookingValidateException .class, () -> bookingService.getBookingsByBookerAndState("FALSE",
+                userResponseDto2.getId()));
         // По пользователю, который не бронировал
         List<BookingResponseDto> bookingResponseDtoList = bookingService.getBookingsByBookerAndState("ALL",
                 userResponseDto.getId());
@@ -170,6 +181,9 @@ public class BookingServiceTest {
 
     @Test
     void shouldGetBookingsByOwnerAndStateTest() {
+        // Статус  не предусмотрен
+        assertThrows(BookingValidateException .class, () -> bookingService.getBookingsByBookerAndState("FALSE",
+                userResponseDto2.getId()));
         // По пользователю, который не владеет ни одной вещью
         assertThrows(BookingValidateException.class, () -> bookingService.getBookingsByOwnerAndState("ALL",
                 userResponseDto.getId()));

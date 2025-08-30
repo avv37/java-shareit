@@ -5,10 +5,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.exception.BookingValidateException;
 import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserResponseDto;
 import ru.practicum.shareit.user.dto.UserUpdateDto;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
+import ru.practicum.shareit.user.exception.UserValidateException;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -16,6 +18,7 @@ import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Transactional
 @SpringBootTest
@@ -32,6 +35,10 @@ public class UserServiceTest {
         assertThat(userResponseDto.getId()).isNotNull();
         assertThat(userResponseDto.getName()).isEqualTo(userCreateDto.getName());
         assertThat(userResponseDto.getEmail()).isEqualTo(userCreateDto.getEmail());
+
+        UserCreateDto userCreateDtoEmail = new UserCreateDto(null, "Malysh", "Karlson@mail.com");
+        assertThrows(UserValidateException.class, () -> service.create(userCreateDtoEmail));
+
     }
 
     @Test
@@ -46,11 +53,16 @@ public class UserServiceTest {
                 .email("Rulle@mail.com")
                 .build();
 
+        // несуществующий юзер
+        assertThrows(UserNotFoundException.class, () -> service.update(100L, userUpdateDto));
+
         userResponseDto = service.update(userId, userUpdateDto);
 
         assertThat(userResponseDto.getId()).isEqualTo(userId);
         assertThat(userResponseDto.getName()).isEqualTo("Rulle");
         assertThat(userResponseDto.getEmail()).isEqualTo("Rulle@mail.com");
+        // с уже существующим email
+        assertThrows(UserValidateException.class, () -> service.update(userId, userUpdateDto));
 
     }
 

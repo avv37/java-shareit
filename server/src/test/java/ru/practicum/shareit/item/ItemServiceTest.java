@@ -116,9 +116,18 @@ public class ItemServiceTest {
                 .ownerId(userResponseDto1.getId())
                 .build();
         assertThrows(ItemValidateException.class, () -> itemService.update(itemUpdateDto2));
+        // Нет такого пользователя
+        ItemUpdateDto itemUpdateDto3 = ItemUpdateDto.builder()
+                .id(itemResponseDto.getId())
+                .name("name new")
+                .description("description new")
+                .available(true)
+                .ownerId(100L)
+                .build();
+        assertThrows(UserNotFoundException.class, () -> itemService.update(itemUpdateDto3));
 
         // апдейтим вещь с правильными параметрами
-        ItemUpdateDto itemUpdateDto = itemUpdateDto2;
+        ItemUpdateDto itemUpdateDto = itemUpdateDto3;
         itemUpdateDto.setOwnerId(userResponseDto2.getId());
         itemResponseDto = itemService.update(itemUpdateDto);
 
@@ -203,6 +212,9 @@ public class ItemServiceTest {
                 LocalDateTime.now().minusMinutes(40L), LocalDateTime.now().minusMinutes(30L));
         BookingResponseDto bookingResponseDto2 = bookingService.create(bookingCreateDto2, userResponseDto.getId());
 
+        // Нет такого пользователя
+        assertThrows(UserNotFoundException.class, () -> itemService.getItemsByOwner(100L));
+
         // Получили список по владельцу
         List<ItemResponseDto> itemResponseDtoList = itemService.getItemsByOwner(userResponseDto.getId());
 
@@ -247,8 +259,12 @@ public class ItemServiceTest {
                 userResponseDto.getId(), itemRequestDto2.getId());
         ItemResponseDto itemResponseDto2 = itemService.create(itemCreateDto2);
 
+        // Пустой текст
+        List<ItemResponseShortDto> itemResponseDtoList = itemService.searchItemsByText("", userResponseDto.getId());
+        assertThat(itemResponseDtoList.size()).isEqualTo(0);
+
         // Получили список по вхождению строки
-        List<ItemResponseShortDto> itemResponseDtoList = itemService.searchItemsByText("des", userResponseDto.getId());
+        itemResponseDtoList = itemService.searchItemsByText("des", userResponseDto.getId());
 
         assertThat(itemResponseDtoList).isNotNull();
         assertThat(itemResponseDtoList.size()).isEqualTo(2);

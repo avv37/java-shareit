@@ -69,9 +69,7 @@ public class BookingServiceImpl implements BookingService {
         userRepository.findById(userId)
                 .orElseThrow(() -> new BookingValidateException("Пользователь с id = " + userId + " не найден"));
         Item item = booking.getItem();
-        if (item == null) {
-            throw new BookingValidateException("В букинге нет вещи");
-        }
+
         if (!item.getOwner().getId().equals(userId)) {
             throw new BookingValidateException("Пользователь с id = " + userId
                     + " не является владельцем вещи из брони " + bookingId);
