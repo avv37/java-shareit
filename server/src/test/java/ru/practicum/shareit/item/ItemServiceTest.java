@@ -126,10 +126,28 @@ public class ItemServiceTest {
                 .build();
         assertThrows(UserNotFoundException.class, () -> itemService.update(itemUpdateDto3));
 
+        ItemUpdateDto itemUpdateDto4 = ItemUpdateDto.builder()
+                .id(itemResponseDto.getId())
+                .name(null)
+                .description(null)
+                .available(null)
+                .ownerId(userResponseDto2.getId())
+                .build();
+        itemResponseDto = itemService.update(itemUpdateDto4);
+        assertThat(itemResponseDto.getId()).isNotNull();
+        assertThat(itemResponseDto.getName()).isEqualTo("name1");
+        assertThat(itemResponseDto.getDescription()).isEqualTo("descr1");
+        assertThat(itemResponseDto.getAvailable()).isEqualTo(true);
+
         // апдейтим вещь с правильными параметрами
-        ItemUpdateDto itemUpdateDto = itemUpdateDto3;
-        itemUpdateDto.setOwnerId(userResponseDto2.getId());
-        itemResponseDto = itemService.update(itemUpdateDto);
+        itemUpdateDto4 = ItemUpdateDto.builder()
+                .id(itemResponseDto.getId())
+                .name("name new")
+                .description("description new")
+                .available(true)
+                .ownerId(userResponseDto2.getId())
+                .build();
+        itemResponseDto = itemService.update(itemUpdateDto4);
 
         assertThat(itemResponseDto.getId()).isNotNull();
         assertThat(itemResponseDto.getName()).isEqualTo("name new");
@@ -164,6 +182,8 @@ public class ItemServiceTest {
         BookingCreateDto bookingCreateDto2 = new BookingCreateDto(itemResponseDto2.getId(),
                 LocalDateTime.now().minusMinutes(40L), LocalDateTime.now().minusMinutes(30L));
         BookingResponseDto bookingResponseDto2 = bookingService.create(bookingCreateDto2, userResponseDto2.getId());
+
+        assertThrows(ItemNotFoundException.class, () -> itemService.getItemById(100L, userResponseDto1.getId()));
 
         // владелец получает с букингом
         ItemResponseDto itemResponseDto10 = itemService.getItemById(itemResponseDto1.getId(), userResponseDto1.getId());
@@ -301,6 +321,16 @@ public class ItemServiceTest {
         BookingCreateDto bookingCreateDto1 = new BookingCreateDto(itemResponseDto1.getId(),
                 LocalDateTime.now().minusMinutes(50L), LocalDateTime.now().minusMinutes(40L));
         BookingResponseDto bookingResponseDto1 = bookingService.create(bookingCreateDto1, userResponseDto2.getId());
+
+        // пользователь не найден
+        CommentCreateDto commentCreateDtoUser = new CommentCreateDto("good thing", itemResponseDto1.getId(),
+                100L);
+        assertThrows(UserNotFoundException.class, () -> itemService.addComment(commentCreateDtoUser));
+
+        // вещь не найдена
+        CommentCreateDto commentCreateDtoItem = new CommentCreateDto("good thing", 100L, userResponseDto2.getId());
+        assertThrows(ItemNotFoundException.class, () -> itemService.addComment(commentCreateDtoItem));
+
 
         // комментарий не того, кто брал в аренду
         CommentCreateDto commentCreateDto1 = new CommentCreateDto("good thing", itemResponseDto1.getId(),

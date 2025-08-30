@@ -49,7 +49,7 @@ public class UserServiceTest {
         UserUpdateDto userUpdateDto = UserUpdateDto.builder()
                 .id(userResponseDto.getId())
                 .name("Rulle")
-                .email("Rulle@mail.com")
+                .email(null)
                 .build();
 
         // несуществующий юзер
@@ -59,9 +59,22 @@ public class UserServiceTest {
 
         assertThat(userResponseDto.getId()).isEqualTo(userId);
         assertThat(userResponseDto.getName()).isEqualTo("Rulle");
+        assertThat(userResponseDto.getEmail()).isEqualTo("Fille@mail.com");
+
+        UserUpdateDto userUpdateDto1 = UserUpdateDto.builder()
+                .id(userResponseDto.getId())
+                .name(null)
+                .email("Rulle@mail.com")
+                .build();
+
+        userResponseDto = service.update(userId, userUpdateDto1);
+
+        assertThat(userResponseDto.getId()).isEqualTo(userId);
+        assertThat(userResponseDto.getName()).isEqualTo("Rulle");
         assertThat(userResponseDto.getEmail()).isEqualTo("Rulle@mail.com");
+
         // с уже существующим email
-        assertThrows(UserValidateException.class, () -> service.update(userId, userUpdateDto));
+        assertThrows(UserValidateException.class, () -> service.update(userId, userUpdateDto1));
 
     }
 

@@ -14,6 +14,7 @@ import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
+import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -81,6 +82,16 @@ public class BookingServiceTest {
                 LocalDateTime.now().minusMinutes(10L), LocalDateTime.now().minusMinutes(20L));
         assertThrows(BookingValidateException.class, () -> bookingService.create(bookingCreateDtoTime, userResponseDto2.getId()));
 
+        // пользователь не найден
+        BookingCreateDto bookingCreateDtoUser = new BookingCreateDto(itemResponseDtoTime.getId(),
+                LocalDateTime.now().minusMinutes(30L), LocalDateTime.now().minusMinutes(20L));
+        assertThrows(UserNotFoundException.class, () -> bookingService.create(bookingCreateDtoUser, 100L));
+
+        // вещь не найдена
+        BookingCreateDto bookingCreateDtoItem = new BookingCreateDto(100L,
+                LocalDateTime.now().minusMinutes(30L), LocalDateTime.now().minusMinutes(20L));
+        assertThrows(ItemNotFoundException.class, () -> bookingService.create(bookingCreateDtoItem, userResponseDto2.getId()));
+
         // создали вещь, владелец 1, недоступна для аренды
         ItemCreateDto itemCreateDtoFalse = new ItemCreateDto("name1", "descr1", false,
                 userResponseDto1.getId(), itemRequestDto1.getId());
@@ -112,6 +123,11 @@ public class BookingServiceTest {
     @Test
     void shouldApproveBookingTest() {
         // 1-й владелец, 2-й брал в аренду
+
+        // пользователь не найден
+        assertThrows(BookingValidateException.class, () -> bookingService.approve(bookingResponseDto1.getId(),
+                true, 100L));
+
         // Одобряем несуществующее бронирование
         assertThrows(BookingNotFoundException.class, () -> bookingService.approve(100L, true,
                 userResponseDto1.getId()));
@@ -159,6 +175,9 @@ public class BookingServiceTest {
 
     @Test
     void shouldGetBookingsByBookerAndStateTest() {
+        // Ищем бронирование с несуществующим пользователем
+        assertThrows(UserNotFoundException.class, () -> bookingService.getBookingsByBookerAndState("ALL",
+                100L));
         // Статус  не предусмотрен
         assertThrows(BookingValidateException.class, () -> bookingService.getBookingsByBookerAndState("FALSE",
                 userResponseDto2.getId()));
@@ -169,6 +188,14 @@ public class BookingServiceTest {
 
         // С таким статусом нет бронирований
         bookingResponseDtoList = bookingService.getBookingsByBookerAndState("FUTURE", userResponseDto2.getId());
+        assertThat(bookingResponseDtoList.size()).isEqualTo(0);
+        bookingResponseDtoList = bookingService.getBookingsByBookerAndState("WAITING", userResponseDto2.getId());
+        assertThat(bookingResponseDtoList.size()).isEqualTo(1);
+        bookingResponseDtoList = bookingService.getBookingsByBookerAndState("CURRENT", userResponseDto2.getId());
+        assertThat(bookingResponseDtoList.size()).isEqualTo(0);
+        bookingResponseDtoList = bookingService.getBookingsByBookerAndState("PAST", userResponseDto2.getId());
+        assertThat(bookingResponseDtoList.size()).isEqualTo(1);
+        bookingResponseDtoList = bookingService.getBookingsByBookerAndState("REJECTED", userResponseDto2.getId());
         assertThat(bookingResponseDtoList.size()).isEqualTo(0);
 
         bookingResponseDtoList = bookingService.getBookingsByBookerAndState("ALL", userResponseDto2.getId());
@@ -181,9 +208,13 @@ public class BookingServiceTest {
 
     @Test
     void shouldGetBookingsByOwnerAndStateTest() {
+        // Ищем бронирование с несуществующим пользователем
+        assertThrows(UserNotFoundException.class, () -> bookingService.getBookingsByOwnerAndState("ALL",
+                100L));
         // Статус  не предусмотрен
-        assertThrows(BookingValidateException.class, () -> bookingService.getBookingsByBookerAndState("FALSE",
-                userResponseDto2.getId()));
+        assertThrows(BookingValidateException.class, () -> bookingService.getBookingsByOwnerAndState("FALSE",
+                userResponseDto1.getId()));
+
         // По пользователю, который не владеет ни одной вещью
         assertThrows(BookingValidateException.class, () -> bookingService.getBookingsByOwnerAndState("ALL",
                 userResponseDto.getId()));
@@ -191,6 +222,16 @@ public class BookingServiceTest {
         // С таким статусом нет бронирований
         List<BookingResponseDto> bookingResponseDtoList = bookingService.getBookingsByOwnerAndState("FUTURE",
                 userResponseDto1.getId());
+        assertThat(bookingResponseDtoList.size()).isEqualTo(0);
+        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState("FUTURE", userResponseDto1.getId());
+        assertThat(bookingResponseDtoList.size()).isEqualTo(0);
+        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState("WAITING", userResponseDto1.getId());
+        assertThat(bookingResponseDtoList.size()).isEqualTo(1);
+        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState("CURRENT", userResponseDto1.getId());
+        assertThat(bookingResponseDtoList.size()).isEqualTo(0);
+        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState("PAST", userResponseDto1.getId());
+        assertThat(bookingResponseDtoList.size()).isEqualTo(1);
+        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState("REJECTED", userResponseDto1.getId());
         assertThat(bookingResponseDtoList.size()).isEqualTo(0);
 
         bookingResponseDtoList = bookingService.getBookingsByOwnerAndState("ALL", userResponseDto1.getId());
