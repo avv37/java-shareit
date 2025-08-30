@@ -160,7 +160,7 @@ public class BookingServiceTest {
     @Test
     void shouldGetBookingsByBookerAndStateTest() {
         // Статус  не предусмотрен
-        assertThrows(BookingValidateException .class, () -> bookingService.getBookingsByBookerAndState("FALSE",
+        assertThrows(BookingValidateException.class, () -> bookingService.getBookingsByBookerAndState("FALSE",
                 userResponseDto2.getId()));
         // По пользователю, который не бронировал
         List<BookingResponseDto> bookingResponseDtoList = bookingService.getBookingsByBookerAndState("ALL",
@@ -182,7 +182,7 @@ public class BookingServiceTest {
     @Test
     void shouldGetBookingsByOwnerAndStateTest() {
         // Статус  не предусмотрен
-        assertThrows(BookingValidateException .class, () -> bookingService.getBookingsByBookerAndState("FALSE",
+        assertThrows(BookingValidateException.class, () -> bookingService.getBookingsByBookerAndState("FALSE",
                 userResponseDto2.getId()));
         // По пользователю, который не владеет ни одной вещью
         assertThrows(BookingValidateException.class, () -> bookingService.getBookingsByOwnerAndState("ALL",
