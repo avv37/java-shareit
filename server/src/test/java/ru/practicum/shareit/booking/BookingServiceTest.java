@@ -39,34 +39,30 @@ public class BookingServiceTest {
     private final ItemRequestService itemRequestService;
     private final BookingService bookingService;
 
-    private final UserCreateDto userCreateDto = new UserCreateDto(null, "Karlson", "Karlson@mail.com");
-    private final UserCreateDto userCreateDto1 = new UserCreateDto(null, "Fille", "Fille@mail.com");
-    private final UserCreateDto userCreateDto2 = new UserCreateDto(null, "Rulle", "Rulle@mail.com");
-    private final ItemRequestCreateDto itemRequestCreateDto1 = new ItemRequestCreateDto("descr1");
-    private final ItemRequestCreateDto itemRequestCreateDto2 = new ItemRequestCreateDto("descr2");
     private final LocalDateTime start = LocalDateTime.now().minusMinutes(50L);
     private final LocalDateTime end = LocalDateTime.now().minusMinutes(30L);
     private UserResponseDto userResponseDto;
     private UserResponseDto userResponseDto1;
     private UserResponseDto userResponseDto2;
     private ItemRequestDto itemRequestDto1;
-    private ItemCreateDto itemCreateDto1;
-    private ItemResponseDto itemResponseDto1;
-    private BookingCreateDto bookingCreateDto1;
     private BookingResponseDto bookingResponseDto1;
 
     @BeforeEach
     void beforeEach() {
+        UserCreateDto userCreateDto = new UserCreateDto(null, "Karlson", "Karlson@mail.com");
+        UserCreateDto userCreateDto1 = new UserCreateDto(null, "Fille", "Fille@mail.com");
+        UserCreateDto userCreateDto2 = new UserCreateDto(null, "Rulle", "Rulle@mail.com");
         userResponseDto = userService.create(userCreateDto);
         userResponseDto1 = userService.create(userCreateDto1);
         userResponseDto2 = userService.create(userCreateDto2);
+        ItemRequestCreateDto itemRequestCreateDto1 = new ItemRequestCreateDto("descr1");
         itemRequestDto1 = itemRequestService.create(itemRequestCreateDto1, userResponseDto1.getId());
         // создали вещь, владелец 1
-        itemCreateDto1 = new ItemCreateDto("name1", "descr1", true,
+        ItemCreateDto itemCreateDto1 = new ItemCreateDto("name1", "descr1", true,
                 userResponseDto1.getId(), itemRequestDto1.getId());
-        itemResponseDto1 = itemService.create(itemCreateDto1);
+        ItemResponseDto itemResponseDto1 = itemService.create(itemCreateDto1);
         // забронировали
-        bookingCreateDto1 = new BookingCreateDto(itemResponseDto1.getId(), start, end);
+        BookingCreateDto bookingCreateDto1 = new BookingCreateDto(itemResponseDto1.getId(), start, end);
         bookingResponseDto1 = bookingService.create(bookingCreateDto1, userResponseDto2.getId());
     }
 
@@ -176,29 +172,27 @@ public class BookingServiceTest {
     @Test
     void shouldGetBookingsByBookerAndStateTest() {
         // Ищем бронирование с несуществующим пользователем
-        assertThrows(UserNotFoundException.class, () -> bookingService.getBookingsByBookerAndState("ALL",
+        assertThrows(UserNotFoundException.class, () -> bookingService.getBookingsByBookerAndState(State.ALL,
                 100L));
-        // Статус  не предусмотрен
-        assertThrows(BookingValidateException.class, () -> bookingService.getBookingsByBookerAndState("FALSE",
-                userResponseDto2.getId()));
+
         // По пользователю, который не бронировал
-        List<BookingResponseDto> bookingResponseDtoList = bookingService.getBookingsByBookerAndState("ALL",
+        List<BookingResponseDto> bookingResponseDtoList = bookingService.getBookingsByBookerAndState(State.ALL,
                 userResponseDto.getId());
         assertThat(bookingResponseDtoList.size()).isEqualTo(0);
 
         // С таким статусом нет бронирований
-        bookingResponseDtoList = bookingService.getBookingsByBookerAndState("FUTURE", userResponseDto2.getId());
+        bookingResponseDtoList = bookingService.getBookingsByBookerAndState(State.FUTURE, userResponseDto2.getId());
         assertThat(bookingResponseDtoList.size()).isEqualTo(0);
-        bookingResponseDtoList = bookingService.getBookingsByBookerAndState("WAITING", userResponseDto2.getId());
+        bookingResponseDtoList = bookingService.getBookingsByBookerAndState(State.WAITING, userResponseDto2.getId());
         assertThat(bookingResponseDtoList.size()).isEqualTo(1);
-        bookingResponseDtoList = bookingService.getBookingsByBookerAndState("CURRENT", userResponseDto2.getId());
+        bookingResponseDtoList = bookingService.getBookingsByBookerAndState(State.CURRENT, userResponseDto2.getId());
         assertThat(bookingResponseDtoList.size()).isEqualTo(0);
-        bookingResponseDtoList = bookingService.getBookingsByBookerAndState("PAST", userResponseDto2.getId());
+        bookingResponseDtoList = bookingService.getBookingsByBookerAndState(State.PAST, userResponseDto2.getId());
         assertThat(bookingResponseDtoList.size()).isEqualTo(1);
-        bookingResponseDtoList = bookingService.getBookingsByBookerAndState("REJECTED", userResponseDto2.getId());
+        bookingResponseDtoList = bookingService.getBookingsByBookerAndState(State.REJECTED, userResponseDto2.getId());
         assertThat(bookingResponseDtoList.size()).isEqualTo(0);
 
-        bookingResponseDtoList = bookingService.getBookingsByBookerAndState("ALL", userResponseDto2.getId());
+        bookingResponseDtoList = bookingService.getBookingsByBookerAndState(State.ALL, userResponseDto2.getId());
 
         assertThat(bookingResponseDtoList.size()).isEqualTo(1);
         BookingResponseDto bookingResponseDto = bookingResponseDtoList.getFirst();
@@ -209,32 +203,27 @@ public class BookingServiceTest {
     @Test
     void shouldGetBookingsByOwnerAndStateTest() {
         // Ищем бронирование с несуществующим пользователем
-        assertThrows(UserNotFoundException.class, () -> bookingService.getBookingsByOwnerAndState("ALL",
+        assertThrows(UserNotFoundException.class, () -> bookingService.getBookingsByOwnerAndState(State.ALL,
                 100L));
-        // Статус  не предусмотрен
-        assertThrows(BookingValidateException.class, () -> bookingService.getBookingsByOwnerAndState("FALSE",
-                userResponseDto1.getId()));
 
         // По пользователю, который не владеет ни одной вещью
-        assertThrows(BookingValidateException.class, () -> bookingService.getBookingsByOwnerAndState("ALL",
+        assertThrows(BookingValidateException.class, () -> bookingService.getBookingsByOwnerAndState(State.ALL,
                 userResponseDto.getId()));
 
         // С таким статусом нет бронирований
-        List<BookingResponseDto> bookingResponseDtoList = bookingService.getBookingsByOwnerAndState("FUTURE",
+        List<BookingResponseDto> bookingResponseDtoList = bookingService.getBookingsByOwnerAndState(State.FUTURE,
                 userResponseDto1.getId());
         assertThat(bookingResponseDtoList.size()).isEqualTo(0);
-        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState("FUTURE", userResponseDto1.getId());
-        assertThat(bookingResponseDtoList.size()).isEqualTo(0);
-        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState("WAITING", userResponseDto1.getId());
+        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState(State.WAITING, userResponseDto1.getId());
         assertThat(bookingResponseDtoList.size()).isEqualTo(1);
-        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState("CURRENT", userResponseDto1.getId());
+        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState(State.CURRENT, userResponseDto1.getId());
         assertThat(bookingResponseDtoList.size()).isEqualTo(0);
-        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState("PAST", userResponseDto1.getId());
+        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState(State.PAST, userResponseDto1.getId());
         assertThat(bookingResponseDtoList.size()).isEqualTo(1);
-        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState("REJECTED", userResponseDto1.getId());
+        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState(State.REJECTED, userResponseDto1.getId());
         assertThat(bookingResponseDtoList.size()).isEqualTo(0);
 
-        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState("ALL", userResponseDto1.getId());
+        bookingResponseDtoList = bookingService.getBookingsByOwnerAndState(State.ALL, userResponseDto1.getId());
 
         assertThat(bookingResponseDtoList.size()).isEqualTo(1);
         BookingResponseDto bookingResponseDto = bookingResponseDtoList.getFirst();

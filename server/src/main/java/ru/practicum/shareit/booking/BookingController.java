@@ -55,7 +55,7 @@ public class BookingController {
     }
 
     @GetMapping
-    public List<BookingResponseDto> getBookingsByBookerAndState(@RequestParam(required = false, defaultValue = "ALL") String state,
+    public List<BookingResponseDto> getBookingsByBookerAndState(@RequestParam State state,
                                                                 @RequestHeader(USER_ID) Long userId) {
         log.info("getBookingsByBookerAndState: state = {}, userId = {}", state, userId);
         List<BookingResponseDto> bookingResponseDtoList = bookingService.getBookingsByBookerAndState(state, userId);
@@ -64,7 +64,7 @@ public class BookingController {
     }
 
     @GetMapping("/owner")
-    public List<BookingResponseDto> getBookingsByOwnerAndState(@RequestParam(required = false, defaultValue = "ALL") String state,
+    public List<BookingResponseDto> getBookingsByOwnerAndState(@RequestParam State state,
                                                                @RequestHeader(USER_ID) Long userId) {
         log.info("getBookingsByOwnerAndState: state = {}, userId = {}", state, userId);
         List<BookingResponseDto> bookingResponseDtoList = bookingService.getBookingsByOwnerAndState(state, userId);

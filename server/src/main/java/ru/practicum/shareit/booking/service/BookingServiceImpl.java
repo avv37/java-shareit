@@ -109,16 +109,17 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingResponseDto> getBookingsByBookerAndState(String state, Long userId) {
-        log.info("getBookingsByBookerAndState state = {}, userId = {}", state, userId);
+    public List<BookingResponseDto> getBookingsByBookerAndState(State stateSt, Long userId) {
+        log.info("getBookingsByBookerAndState state = {}, userId = {}", stateSt, userId);
         userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + userId + " не найден"));
-        State stateSt;
+        String state = stateSt.toString();
+        /*State stateSt;
         try {
             stateSt = State.valueOf(state.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new BookingValidateException("Статус " + state + " не предусмотрен");
-        }
+        }*/
         Sort orderByStartDesc = Sort.by(Sort.Direction.DESC, "start");
         List<Booking> bookingList = switch (stateSt) {
             case ALL -> bookingRepository.findByBookerId(userId, orderByStartDesc);
@@ -143,19 +144,20 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingResponseDto> getBookingsByOwnerAndState(String state, Long userId) {
-        log.info("getBookingsByOwnerAndState state = {}, userId = {}", state, userId);
+    public List<BookingResponseDto> getBookingsByOwnerAndState(State stateSt, Long userId) {
+        log.info("getBookingsByOwnerAndState state = {}, userId = {}", stateSt, userId);
         userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id = " + userId + " не найден"));
         if (itemRepository.findFirstByOwnerId(userId) == null) {
             throw new BookingValidateException("Пользователь " + userId + " не владеет ни одной вещью");
         }
-        State stateSt;
+        String state = stateSt.toString();
+        /*State stateSt;
         try {
             stateSt = State.valueOf(state.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new BookingValidateException("Статус " + state + " не предусмотрен");
-        }
+        }*/
         Sort orderByStartDesc = Sort.by(Sort.Direction.DESC, "start");
         List<Booking> bookingList = switch (stateSt) {
             case ALL -> bookingRepository.findByItemOwnerId(userId, orderByStartDesc);

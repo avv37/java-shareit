@@ -52,14 +52,26 @@ public class BookingController {
     public ResponseEntity<Object> getBookingsByBookerAndState(@RequestParam(required = false, defaultValue = "ALL") String state,
                                                               @RequestHeader(USER_ID) @Min(1) Long userId) {
         log.info("getBookingsByBookerAndState: state = {}, userId = {}", state, userId);
-        return bookingClient.getBookingsByBookerAndState(state, userId);
+        State stateSt;
+        try {
+            stateSt = State.valueOf(state.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Статус " + state + " не предусмотрен");
+        }
+        return bookingClient.getBookingsByBookerAndState(stateSt, userId);
     }
 
     @GetMapping("/owner")
     public ResponseEntity<Object> getBookingsByOwnerAndState(@RequestParam(required = false, defaultValue = "ALL") String state,
                                                              @RequestHeader(USER_ID) @Min(1) Long userId) {
         log.info("getBookingsByOwnerAndState: state = {}, userId = {}", state, userId);
-        return bookingClient.getBookingsByOwnerAndState(state, userId);
+        State stateSt;
+        try {
+            stateSt = State.valueOf(state.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Статус " + state + " не предусмотрен");
+        }
+        return bookingClient.getBookingsByOwnerAndState(stateSt, userId);
     }
 
 }
